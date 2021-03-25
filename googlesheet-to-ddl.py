@@ -1,6 +1,9 @@
 from __future__ import print_function
 import pickle
 import os.path
+import struct
+import time
+from random import SystemRandom
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
@@ -11,6 +14,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 # The ID and range of a sample spreadsheet.
 SAMPLE_SPREADSHEET_ID = '1Sb0MC15LSKdRjcST51siXnBhWUeNkQCdohlCtKuUNjY'
 SAMPLE_RANGE_NAME = '참고.BS_금융기관ID!A4:E'
+
 
 def main():
     """Shows basic usage of the Sheets API.
@@ -46,10 +50,28 @@ def main():
     if not values:
         print('No data found.')
     else:
-        print('Name, Major:')
+        _MAX_COUNTER_VALUE = 0xFFFFFF
+        _inc = SystemRandom().randint(0, _MAX_COUNTER_VALUE)
         for row in values:
+            # Generate an organizationObjectId according to MongoDB ObjectId source code.
+            # See (https://github.com/mongodb/mongo-python-driver).
+            # 4 bytes current time
+            oid = struct.pack(">I", int(time.time()))
+            # 5 bytes random
+            oid += os.urandom(5)
+            # 3 bytes inc
+            oid += struct.pack(">I", _inc)[1:4]
+            hex_string = oid.hex()
+            _inc = (_inc + 1) % (_MAX_COUNTER_VALUE + 1)
             # Print columns A and E, which correspond to indices 0 and 4.
-            print("insert into organization(sector,industry,organization_id,org_name) values ('finance','%s','%s','%s');" % (row[3][1:], row[4], row[1]))
+            writer = 'brad@rainist.com'
+            print("insert into connect_organization"
+                  "(sector,industry,organization_id,organization_objectid,organization_status,is_deleted"
+                  ",created_at,created_by,updated_at,updated_by)"
+                  " values "
+                  "('finance','%s','%s','%s','active',false,current_timestamp,'%s',current_timestamp,'%s');" % (
+                      row[3][1:], row[4], hex_string, writer, writer))
+
 
 if __name__ == '__main__':
     main()
