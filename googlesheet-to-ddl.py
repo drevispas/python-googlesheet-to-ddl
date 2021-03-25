@@ -53,8 +53,8 @@ def main():
         _MAX_COUNTER_VALUE = 0xFFFFFF
         _inc = SystemRandom().randint(0, _MAX_COUNTER_VALUE)
         for row in values:
-            # Generate an organizationObjectId according to MongoDB ObjectId source code.
-            # See (https://github.com/mongodb/mongo-python-driver).
+            # 아래의 MongoDB ObjectId 생성 코드를 참조하여 organizationObjectId를 자체적으로 생성합니다.
+            # See (https://github.com/mongodb/mongo-python-driver/blob/master/bson/objectid.py).
             # 4 bytes current time
             oid = struct.pack(">I", int(time.time()))
             # 5 bytes random
@@ -64,6 +64,7 @@ def main():
             hex_string = oid.hex()
             _inc = (_inc + 1) % (_MAX_COUNTER_VALUE + 1)
             # Print columns A and E, which correspond to indices 0 and 4.
+            # DB 연결을 직접하는 것은 나중에 고려합니다. 일단은 화면에 INSERT 문장만 출력.
             writer = 'brad@rainist.com'
             print("insert into connect_organization"
                   "(sector,industry,organization_id,organization_objectid,organization_status,is_deleted"
